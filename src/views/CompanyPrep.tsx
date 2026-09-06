@@ -5,7 +5,7 @@ import { useGuest } from '../context/GuestContext';
 import { Card } from '../components/ui/Card';
 import { Checkbox } from '../components/ui/Checkbox';
 import { ComingSoon } from '../components/ui/ComingSoon';
-import { ArrowLeft, ExternalLink, ClipboardList, Layers, BarChart2, Target, FileText } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Link2Off, ClipboardList, Layers, BarChart2, Target, FileText } from 'lucide-react';
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
@@ -55,22 +55,75 @@ const COMING_SOON = false;
 const SHOW_INTERVIEW_PROCESS = false;
 // ────────────────────────────────────────────────────────────────────────────
 
-// Brand domains used to fetch each company's logo.
+// Brand domains used to fetch each company's logo. Keyed by the company `id`
+// in `companies.json` (generated from `src/data/company_wise_sheet.xlsx`).
 const COMPANY_DOMAINS: Record<string, string> = {
-  amazon: 'amazon.com',
-  appian: 'appian.com',
-  'wells-fargo': 'wellsfargo.com',
+  accenture: 'accenture.com',
   accolite: 'accolite.com',
-  apple: 'apple.com',
+  alstom: 'alstom.com',
+  amazon: 'amazon.com',
   'american-express': 'americanexpress.com',
-  walmart: 'walmart.com',
+  appian: 'appian.com',
+  apple: 'apple.com',
   aptiv: 'aptiv.com',
-  'athena-health': 'athenahealth.com',
+  arcesium: 'arcesium.com',
   'arista-networks': 'arista.com',
   'aspire-systems': 'aspiresys.com',
-  'western-digital': 'westerndigital.com',
-  accenture: 'accenture.com',
+  'athena-health': 'athenahealth.com',
+  'bank-of-america': 'bankofamerica.com',
+  barclays: 'barclays.com',
+  'baton-systems': 'batonsystems.com',
   bny: 'bny.com',
+  checktronix: 'checktronix.com',
+  chronus: 'chronus.com',
+  citi: 'citi.com',
+  'de-shaw': 'deshaw.com',
+  deloitte: 'deloitte.com',
+  dover: 'dovercorporation.com',
+  enphase: 'enphase.com',
+  eucloid: 'eucloid.com',
+  fidelity: 'fidelity.com',
+  'gen-digital': 'gendigital.com',
+  'global-analytics': 'globalanalytics.com',
+  'goldman-sachs': 'goldmansachs.com',
+  hsbc: 'hsbc.com',
+  hubstream: 'hubstream.com',
+  'idfc-first-bank': 'idfcfirstbank.com',
+  'infibeam-avenues': 'infibeamav.com',
+  infinera: 'infinera.com',
+  khoros: 'khoros.com',
+  kla: 'kla.com',
+  'loadshare-networks': 'loadshare.net',
+  ltimindtree: 'ltimindtree.com',
+  mathworks: 'mathworks.com',
+  micron: 'micron.com',
+  microsoft: 'microsoft.com',
+  'morgan-stanley': 'morganstanley.com',
+  natwest: 'natwestgroup.com',
+  'ncr-voyix': 'ncrvoyix.com',
+  nokia: 'nokia.com',
+  nvidia: 'nvidia.com',
+  optum: 'optum.com',
+  oracle: 'oracle.com',
+  q2: 'q2.com',
+  quantiphi: 'quantiphi.com',
+  'ramco-systems': 'ramco.com',
+  rtbrick: 'rtbrick.com',
+  'samsung-rd': 'samsung.com',
+  'sap-labs': 'sap.com',
+  'software-ag': 'softwareag.com',
+  tekion: 'tekion.com',
+  trimble: 'trimble.com',
+  vegrow: 'vegrow.in',
+  verizon: 'verizon.com',
+  'versa-networks': 'versa-networks.com',
+  visa: 'visa.com',
+  'vivriti-capital': 'vivriticapital.com',
+  walmart: 'walmart.com',
+  'wells-fargo': 'wellsfargo.com',
+  'western-digital': 'westerndigital.com',
+  wex: 'wexinc.com',
+  wipro: 'wipro.com',
   zoho: 'zoho.com',
 };
 
@@ -364,6 +417,45 @@ const CompanyDetailPage: React.FC<{
       <div className="space-y-2">
         {questions.map((q) => {
           const solved = isSolved(q.id);
+          const hasLink = Boolean(q.link);
+          const rowInner = (
+            <>
+              <span
+                className={`flex-1 min-w-0 text-sm font-medium ${
+                  solved
+                    ? 'text-zinc-500 line-through decoration-zinc-600'
+                    : 'text-zinc-200 group-hover:text-zinc-100'
+                }`}
+              >
+                {q.title}
+              </span>
+              {/* Fixed-width cells so the tags line up in columns across every row. */}
+              <span className="shrink-0 w-[68px] text-center">
+                <span className={`inline-block w-full px-2 py-0.5 text-[10px] font-bold rounded-md border ${diffBadge[q.difficulty]}`}>
+                  {q.difficulty}
+                </span>
+              </span>
+              <span className="hidden lg:block shrink-0 w-28 truncate text-right text-[10px] font-medium text-zinc-500" title={q.topic}>
+                {q.topic}
+              </span>
+              <span className="shrink-0 w-[76px] text-center">
+                <span className={`inline-block w-full px-2 py-0.5 text-[10px] font-bold rounded-md border ${typeStyles(q.type)}`}>
+                  {q.type}
+                </span>
+              </span>
+              <span className="shrink-0 w-9 text-right text-[10px] font-mono font-bold text-zinc-500">{q.year}</span>
+              {hasLink ? (
+                <ExternalLink className="w-3.5 h-3.5 shrink-0 text-zinc-500 group-hover:text-blue-400 transition-colors" />
+              ) : (
+                <span
+                  className="shrink-0 flex items-center"
+                  title="Exact leetcode/GfG match not present"
+                >
+                  <Link2Off className="w-3.5 h-3.5 text-rose-500" />
+                </span>
+              )}
+            </>
+          );
           return (
             <div
               key={q.id}
@@ -386,38 +478,18 @@ const CompanyDetailPage: React.FC<{
                   });
                 }}
               />
-              <a
-                href={q.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-1 items-center gap-3 min-w-0"
-              >
-                <span
-                  className={`flex-1 min-w-0 text-sm font-medium ${
-                    solved
-                      ? 'text-zinc-500 line-through decoration-zinc-600'
-                      : 'text-zinc-200 group-hover:text-zinc-100'
-                  }`}
+              {hasLink ? (
+                <a
+                  href={q.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-1 items-center gap-3 min-w-0"
                 >
-                  {q.title}
-                </span>
-                {/* Fixed-width cells so the tags line up in columns across every row. */}
-                <span className="shrink-0 w-[68px] text-center">
-                  <span className={`inline-block w-full px-2 py-0.5 text-[10px] font-bold rounded-md border ${diffBadge[q.difficulty]}`}>
-                    {q.difficulty}
-                  </span>
-                </span>
-                <span className="hidden lg:block shrink-0 w-28 truncate text-right text-[10px] font-medium text-zinc-500" title={q.topic}>
-                  {q.topic}
-                </span>
-                <span className="shrink-0 w-[76px] text-center">
-                  <span className={`inline-block w-full px-2 py-0.5 text-[10px] font-bold rounded-md border ${typeStyles(q.type)}`}>
-                    {q.type}
-                  </span>
-                </span>
-                <span className="shrink-0 w-9 text-right text-[10px] font-mono font-bold text-zinc-500">{q.year}</span>
-                <ExternalLink className="w-3.5 h-3.5 shrink-0 text-zinc-500 group-hover:text-blue-400 transition-colors" />
-              </a>
+                  {rowInner}
+                </a>
+              ) : (
+                <div className="flex flex-1 items-center gap-3 min-w-0">{rowInner}</div>
+              )}
             </div>
           );
         })}
