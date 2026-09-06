@@ -535,23 +535,10 @@ export const CompanyPrep: React.FC = () => {
       <div>
         <h2 className="text-xl font-semibold text-zinc-100">Companies</h2>
         <p className="text-sm text-zinc-500 mt-1">
-          Company-specific OA &amp; interview questions shared by students.
+          Company-specific OA &amp; interview questions shared by students. All questions were
+          asked in OAs and interviews at Anna University, extracted from CSEA Placement Experiences.
         </p>
       </div>
-
-      {/* Provenance — where this question bank comes from */}
-      <p className="text-sm text-zinc-400">
-        All questions were asked in OAs and interviews at Anna University, extracted from the{' '}
-        <a
-          href={CSEA_PLACEMENT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-blue-400 underline decoration-blue-400/40 underline-offset-2 hover:text-blue-300"
-        >
-          CSEA Placement Portal
-        </a>
-        .
-      </p>
 
       {/* CSEA placement portal banner — full placement experiences live here */}
       <a
