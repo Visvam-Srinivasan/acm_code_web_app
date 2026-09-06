@@ -147,6 +147,30 @@ def link_slug(u):
     m = SLUG_RE.search(u.lower())
     return m.group(1) if m else None
 
+
+def sanitize_link(u):
+    """Normalise a source-sheet URL: canonicalise LeetCode problem links, drop
+    tracking query strings (?utm_source=chatgpt.com, ?envId=…), and repair the
+    truncated `…/descript` suffixes that appear in the spreadsheet."""
+    if not u:
+        return u
+    u = str(u).strip()
+    if not u.lower().startswith('http'):
+        return u
+    m = re.match(r'https?://(?:www\.)?leetcode\.com/problems/([a-z0-9\-]+)', u, re.I)
+    if m:
+        return f'https://leetcode.com/problems/{m.group(1).lower()}/'
+    if re.match(r'https?://(?:www\.)?leetcode\.com/', u, re.I):
+        return u.split('?')[0].split('#')[0]
+    if re.search(r'geeksforgeeks\.org/', u, re.I):
+        u = u.split('?')[0].split('#')[0]
+        return re.sub(r'/descriptio?n?/?$', '/', u)
+    # everything else: strip only obvious tracking params
+    if 'utm_' in u or 'chatgpt' in u.lower():
+        u = re.sub(r'[?&]utm_[^=&]*=[^&]*', '', u)
+        u = re.sub(r'[?&]+$', '', u)
+    return u
+
 # ordered (regex, topic)
 TOPIC_RULES = [
     (r'\bsql\b|\bdbms\b|\brdbms\b|database|normal ?form|normali[sz]|\bjoin\b|subquery|indexing in|query processing|truncate|foreign key|primary key|referential integ|\bddl\b|\bdml\b|\bacid\b|\bbase properties|two[\s\-]phase locking|functional dependency|\btrigger\b|group by|customers who have not|data warehous|one[\s\-]to[\s\-]many', 'Databases'),
@@ -287,6 +311,7 @@ for sheet in wb.sheetnames:
             continue
         if lk and lk.strip() in ('-', '—'):
             lk = None
+        lk = sanitize_link(lk)
         has_link = bool(lk and lk.lower().startswith('http'))
         slug = link_slug(lk) if has_link else None
         if not nm and not has_link:
@@ -334,7 +359,7 @@ for sheet in wb.sheetnames:
         'oaFormat': [],
     })
 
-result.sort(key=lambda c: (-len(c['questions']), c['name']))
+result.sort(key=lambda c: c['name'].lower())
 
 with open(OUT, 'w') as f:
     json.dump(result, f, indent=2, ensure_ascii=False)

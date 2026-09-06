@@ -74,9 +74,22 @@ html.light {
   --app-grad-bottom: #f4f4f5;
 }
 
-/* App shell background — themed radial wash */
+/* App shell background — themed radial wash.
+   The gradient lives on a viewport-fixed pseudo-element so it never rescales
+   or shifts when page content grows or shrinks (e.g. filtering a list
+   shorter). A plain `background-attachment: fixed` would do the same but is
+   unreliable on iOS Safari. */
 .app-bg {
   background-color: var(--color-zinc-950);
+  position: relative;
+  isolation: isolate;
+}
+.app-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-image: radial-gradient(
     ellipse 100% 60% at 30% 0%,
     var(--app-grad-top) 0%,

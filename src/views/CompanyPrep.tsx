@@ -44,7 +44,10 @@ const FORMAT_PLACEHOLDER: Required<CompanyFormat> = {
   interviewFormats: 'Placeholder — round-by-round format (DSA, system design, CS fundamentals, HR) will be added from companies_formats.xlsx.',
 };
 
-const companyData = rawCompanyData as unknown as Company[];
+// Companies are listed alphabetically by name, regardless of question count.
+const companyData = (rawCompanyData as unknown as Company[])
+  .slice()
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 // CSEA placement portal — real, first-hand placement experiences live here.
 const CSEA_PLACEMENT_URL = 'https://placement.cseaceg.org.in/';
