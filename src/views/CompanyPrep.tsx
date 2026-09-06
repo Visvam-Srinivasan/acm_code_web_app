@@ -4,6 +4,7 @@ import { useTracker } from '../hooks/useTracker';
 import { useGuest } from '../context/GuestContext';
 import { Card } from '../components/ui/Card';
 import { Checkbox } from '../components/ui/Checkbox';
+import { Select } from '../components/ui/Select';
 import { ComingSoon } from '../components/ui/ComingSoon';
 import { ArrowLeft, ExternalLink, Link2Off, ClipboardList, Layers, BarChart2, Target, FileText } from 'lucide-react';
 
@@ -231,6 +232,28 @@ const CompanyDetailPage: React.FC<{
   }, [questions]);
   const maxTopicCount = topicCounts[0]?.count ?? 1;
 
+  // ── "Questions Asked" list controls: filter by topic, sort by difficulty ──
+  const [topicFilter, setTopicFilter] = useState<string>('all');
+  const [diffSort, setDiffSort] = useState<'default' | 'easy-first' | 'hard-first'>('default');
+
+  const topicOptions = useMemo(
+    () => [
+      { value: 'all', label: `All topics (${questions.length})` },
+      ...topicCounts.map((t) => ({ value: t.name, label: `${t.name} (${t.count})` })),
+    ],
+    [topicCounts, questions.length],
+  );
+
+  const visibleQuestions = useMemo(() => {
+    const rank: Record<Difficulty, number> = { Easy: 0, Medium: 1, Hard: 2 };
+    let list = topicFilter === 'all' ? questions : questions.filter((q) => q.topic === topicFilter);
+    if (diffSort !== 'default') {
+      const dir = diffSort === 'easy-first' ? 1 : -1;
+      list = [...list].sort((a, b) => (rank[a.difficulty] - rank[b.difficulty]) * dir);
+    }
+    return list;
+  }, [questions, topicFilter, diffSort]);
+
   return (
   <div className="space-y-8 animate-fade-in-up">
     {/* Header */}
@@ -414,8 +437,43 @@ const CompanyDetailPage: React.FC<{
         </div>
       </div>
 
+      {/* Filter by topic · sort by difficulty */}
+      <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-4">
+        <Select
+          label="Filter by topic"
+          options={topicOptions}
+          value={topicFilter}
+          onChange={(e) => setTopicFilter(e.target.value)}
+          className="w-full sm:w-64"
+        />
+        <Select
+          label="Sort by difficulty"
+          options={[
+            { value: 'default', label: 'Default order' },
+            { value: 'easy-first', label: 'Easy → Hard' },
+            { value: 'hard-first', label: 'Hard → Easy' },
+          ]}
+          value={diffSort}
+          onChange={(e) => setDiffSort(e.target.value as typeof diffSort)}
+          className="w-full sm:w-52"
+        />
+        {(topicFilter !== 'all' || diffSort !== 'default') && (
+          <button
+            onClick={() => { setTopicFilter('all'); setDiffSort('default'); }}
+            className="text-xs font-medium text-zinc-400 hover:text-zinc-100 transition-colors cursor-pointer sm:pb-2.5 text-left"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+
+      {visibleQuestions.length === 0 ? (
+        <p className="text-sm text-zinc-500 rounded-lg border border-zinc-800 bg-zinc-900/40 px-4 py-6 text-center">
+          No questions match this filter.
+        </p>
+      ) : (
       <div className="space-y-2">
-        {questions.map((q) => {
+        {visibleQuestions.map((q) => {
           const solved = isSolved(q.id);
           const hasLink = Boolean(q.link);
           const rowInner = (
@@ -494,6 +552,7 @@ const CompanyDetailPage: React.FC<{
           );
         })}
       </div>
+      )}
     </div>
 
   </div>
@@ -510,7 +569,7 @@ export const CompanyPrep: React.FC = () => {
       <div className="space-y-6 animate-fade-in-up">
         <div>
           <h2 className="text-xl font-semibold text-zinc-100">Companies</h2>
-          <p className="text-sm text-zinc-500 mt-1">Company-specific OA & interview questions shared by students.</p>
+          <p className="text-sm text-zinc-500 mt-1"></p>
         </div>
         <ComingSoon message="Company-specific questions are being set up. Check back soon!" />
       </div>
@@ -523,6 +582,7 @@ export const CompanyPrep: React.FC = () => {
   if (selectedCompany) {
     return (
       <CompanyDetailPage
+        key={selectedCompany.id}
         company={selectedCompany}
         onBack={() => setSelectedCompanyId(null)}
       />
